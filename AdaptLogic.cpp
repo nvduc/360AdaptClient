@@ -64,6 +64,9 @@ int* AdaptLogic::get_next_segment(int index){
 		case 5:
 		tile_ver[index] = Ireland(index);
 		break;
+    	case 6:
+   		tile_ver[index] = test(index); // ensure quality smoothness
+    	break;
 	}
 	/* calculate processing time */
 	gettimeofday(&t_end, NULL);

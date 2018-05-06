@@ -22,7 +22,7 @@ Metadata::Metadata(const char* cfg){
 	sprintf(fname, "%svisible_mask_%dx%d_FoV_90x90_%d_%dx%d.txt", vp.vmask_data_loc.c_str(), vp.erp_W, vp.erp_H, vp.No_face, vp.No_tile_h, vp.No_tile_v);
 	load_visible_mask(fname);
 	load_head_trace(trace.trace_loc);
-	exit(1);
+	// exit(1);
 }
 Metadata::Metadata(){
 
@@ -226,9 +226,16 @@ void Metadata::load_video_info(string data_loc){
 		sprintf(buff,"%s%df_%dx%d/tile_size_per_frame/f%d_t%d.txt", video.data_loc.c_str(), vp.No_face, vp.No_tile_h, vp.No_tile_v, f, t);
 		import_matrix_from_txt_file(buff, v, rows, cols);
 		for(i=0; i < video.NO_VER; i++){
-			for(j=0; j < video.NO_FRAME; j++){
+			for(j=0; j < video.NO_FRAME_ORIGIN; j++){
+				// printf("# %d %d \n", j, video.NO_FRAME);
 				tile_frame_size[tid][i][j] = v[3 * video.NO_VER * (j+trace.OFFSET) + 3*i];
 				tile_frame_psnr[tid][i][j] = v[3 * video.NO_VER * (j+trace.OFFSET) + 3*i + 1];
+			}
+			if(video.NO_FRAME_ORIGIN < video.NO_FRAME){
+				for(j=video.NO_FRAME_ORIGIN; j < video.NO_FRAME; j++){
+					tile_frame_size[tid][i][j] = tile_frame_size[tid][i][j%video.NO_FRAME_ORIGIN];
+					tile_frame_psnr[tid][i][j] = tile_frame_psnr[tid][i][j%video.NO_FRAME_ORIGIN];
+				}
 			}
 		}
 	}
@@ -263,11 +270,11 @@ void Metadata::load_head_trace(string trace_loc){
 	vector <double> v;
 	int rows;
 	int cols;
-	trace.frame_vp = init3dArrayInt(trace.NO_TRACE, video.NO_FRAME_ORIGIN, 2);
+	trace.frame_vp = init3dArrayInt(trace.NO_TRACE, video.NO_FRAME, 2);
 	for(k=0; k < trace.NO_TRACE; k++){
 		sprintf(fname, "%sxyz_vid_5_uid_%d.txt", trace_loc.c_str(), k);
 		import_matrix_from_txt_file(fname, v, rows, cols);
-		for(i=0; i < video.NO_FRAME_ORIGIN; i++){
+		for(i=0; i < video.NO_FRAME; i++){
 			for(j=0; j < cols; j++){
 				trace.frame_vp[k][i][j] = v[(i+trace.OFFSET) * cols + j];
 			}
