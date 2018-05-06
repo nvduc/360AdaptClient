@@ -39,6 +39,8 @@ public:
 	int* ISM(int index);
 	int* Ghent(int index);
 	int* Ireland(int index);
+	int* test(int index);
+	// 
 	int* get_visible_tile(int* vp);
 	int* get_visible_pixel(int* vp);
 	double est_vp_psnr(double** TILE_MSE, int NO_TILE, int* tileVer, int* est_vp);

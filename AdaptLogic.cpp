@@ -64,9 +64,9 @@ int* AdaptLogic::get_next_segment(int index){
 		case 5:
 		tile_ver[index] = Ireland(index);
 		break;
-    	case 6:
-   		tile_ver[index] = test(index); // ensure quality smoothness
-    	break;
+    case 6:
+   	tile_ver[index] = test(index); // ensure quality smoothnes
+    break;
 	}
 	/* calculate processing time */
 	gettimeofday(&t_end, NULL);
@@ -175,6 +175,28 @@ void AdaptLogic::vp_estimator(int index){
  	}
  	//
  	vp2.est_vp[index] = vp2.est_frame_vp[index * metadata.video.INTERVAL];
+}
+int* AdaptLogic::test(int index){
+  int* vmask = NULL;
+  int* vmask_tmp;
+  int frameID;
+  int tid;
+  if(index >=  metadata.video.BUFF / metadata.video.INTERVAL){
+    vmask = get_visible_tile(vp2.est_frame_vp[index * metadata.video.INTERVAL]);
+    for(frameID = 1; frameID < metadata.video.INTERVAL; frameID ++){
+      /* get the visible mask */
+      vmask_tmp = get_visible_tile(vp2.est_frame_vp[index * metadata.video.INTERVAL + frameID]);
+      /* update the aggr. visible mask */
+      for(tid=0; tid < metadata.vp.No_tile; tid ++){
+        if(vmask_tmp[tid] == 1)
+          vmask[tid] = 1;
+      }
+    }
+    // printf("#[EXT_ALL]: index=%d vmask:\n", index);
+    // showVmask(vmask, metadata.vp.No_face, metadata.vp.No_tile_h, metadata.vp.No_tile_v);
+  }
+  /* Use ROI to find the version of each tile */
+  return ROI(metadata.video.TILE_BR[index], metadata.vp.No_tile, metadata.video.NO_VER, vmask, thrp.est_seg_thrp[index]);
 }
 int* AdaptLogic::DASH_ERP(int index){
 	int* tile = new int[metadata.vp.No_tile];
