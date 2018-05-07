@@ -74,45 +74,47 @@ int main(int argc, char const *argv[])
 		exit(1);
 	}
 	cfg = load_run_cfg(argv[2]);
-	Metadata metadata (argv[1]);
-	// metadata.print();
-	AdaptLogic adaptLogic(metadata);
-	// adaptLogic.metadata.print();
-	N = metadata.video.NO_SEG_FULL;
-	// for(trace_id = 0; trace_id < cfg.no_trace; trace_id ++)
-	// 	for(method_id = 0; method_id < cfg.no_method; method_id ++)
-	// 		printf("trace: %d method: %d\n", cfg.trace[trace_id], cfg.method[method_id]);
-	//
-	/* open file to log the results */
-	sprintf(fname, "result/%s/%df_%dx%d_trace_0.txt", metadata.video.name.c_str(), metadata.vp.No_face, metadata.vp.No_tile_h, metadata.vp.No_tile_v);
-	fout = fopen(fname, "w");
-	fprintf(fout, "BW\t");
-	for(method_id = 0; method_id < cfg.no_method; method_id++){
-		fprintf(fout, "%s\t%s\t%s\t", adaptLogic.get_method_name(cfg.method[method_id]), adaptLogic.get_method_name(cfg.method[method_id]), adaptLogic.get_method_name(cfg.method[method_id]));
-	}
-	fprintf(fout, "\n");
-	//
-	for(bw_id = 0; bw_id < cfg.no_bw; bw_id++){
-		BW = cfg.bw[bw_id];
-		fprintf(fout, "%d\t", BW);
+	// for(trace_id = 0; trace_id < cfg.no_trace; trace_id ++){
+		Metadata metadata (argv[1]);
+		// metadata.print();
+		AdaptLogic adaptLogic(metadata);
+		// adaptLogic.metadata.print();
+		N = metadata.video.NO_SEG_FULL;
+		// for(trace_id = 0; trace_id < cfg.no_trace; trace_id ++)
+		// 	for(method_id = 0; method_id < cfg.no_method; method_id ++)
+		// 		printf("trace: %d method: %d\n", cfg.trace[trace_id], cfg.method[method_id]);
+		//
+		/* open file to log the results */
+		sprintf(fname, "result/%s/%df_%dx%d_trace_%d.txt", metadata.video.name.c_str(), metadata.vp.No_face, metadata.vp.No_tile_h, metadata.vp.No_tile_v, metadata.trace.TRACE_ID);
+		fout = open_file(fname);
+		fprintf(fout, "BW\t");
 		for(method_id = 0; method_id < cfg.no_method; method_id++){
-			adaptLogic.metadata.adapt.TILE_SELECT_METHOD = cfg.method[method_id];
-			for(index=0; index < N; index++){
-				adaptLogic.thrp.seg_thrp[index] = BW;
-				adaptLogic.get_next_segment(index);
-				// printf("#[main] segment #%d\n", index);
-				// showVmask(adaptLogic.tile_ver[index], adaptLogic.metadata.vp.No_face, adaptLogic.metadata.vp.No_tile_h, adaptLogic.metadata.vp.No_tile_v);
-			}
-			/* calculate metrics */
-			adaptLogic.calc_result();
-			/* write results to files */
-			write_result(adaptLogic, N, BW);
-			//
-			fprintf(fout, "%.2f\t%.2f\t%.2f\t", avg(adaptLogic.vpsnr, adaptLogic.metadata.video.NO_FRAME), avg(adaptLogic.seg_br, adaptLogic.metadata.video.NO_SEG_FULL),100*avg(adaptLogic.seg_br, adaptLogic.metadata.video.NO_SEG_FULL)/BW);
+			fprintf(fout, "%s\t%s\t%s\t", adaptLogic.get_method_name(cfg.method[method_id]), adaptLogic.get_method_name(cfg.method[method_id]), adaptLogic.get_method_name(cfg.method[method_id]));
 		}
 		fprintf(fout, "\n");
-	}
-	fclose(fout);
+		//
+		for(bw_id = 0; bw_id < cfg.no_bw; bw_id++){
+			BW = cfg.bw[bw_id];
+			fprintf(fout, "%d\t", BW);
+			for(method_id = 0; method_id < cfg.no_method; method_id++){
+				adaptLogic.metadata.adapt.TILE_SELECT_METHOD = cfg.method[method_id];
+				for(index=0; index < N; index++){
+					adaptLogic.thrp.seg_thrp[index] = BW;
+					adaptLogic.get_next_segment(index);
+					// printf("#[main] segment #%d\n", index);
+					// showVmask(adaptLogic.tile_ver[index], adaptLogic.metadata.vp.No_face, adaptLogic.metadata.vp.No_tile_h, adaptLogic.metadata.vp.No_tile_v);
+				}
+				/* calculate metrics */
+				adaptLogic.calc_result();
+				/* write results to files */
+				write_result(adaptLogic, N, BW);
+				//
+				fprintf(fout, "%.2f\t%.2f\t%.2f\t", avg(adaptLogic.vpsnr, adaptLogic.metadata.video.NO_FRAME), avg(adaptLogic.seg_br, adaptLogic.metadata.video.NO_SEG_FULL),100*avg(adaptLogic.seg_br, adaptLogic.metadata.video.NO_SEG_FULL)/BW);
+			}
+			fprintf(fout, "\n");
+		}
+		fclose(fout);
+	// }
 	return 0;
 }
 #endif
@@ -278,15 +280,15 @@ void write_result(AdaptLogic adaptLogic, int N, int BW){
 	FILE* log_tile_ver, *log_tile_ver_linear, *log_dec, *log_frame_psnr;
 	FILE* fVPSNR;
 	// generate log files
-	sprintf(fname, "result/%s/log_tile_ver_TRACE_%d_BW_%d_METHOD_%d_VP_EST_METHOD_%d_INTER_%d_BUFF_%d_%df_%dx%d.txt",adaptLogic.metadata.video.name.c_str(), 0, BW, adaptLogic.metadata.adapt.TILE_SELECT_METHOD, adaptLogic.metadata.adapt.VP_EST_METHOD,adaptLogic.metadata.video.INTERVAL, adaptLogic.metadata.video.BUFF, adaptLogic.metadata.vp.No_face, adaptLogic.metadata.vp.No_tile_h, adaptLogic.metadata.vp.No_tile_v);
+	sprintf(fname, "result/%s/log_tile_ver_TRACE_%d_BW_%d_METHOD_%d_VP_EST_METHOD_%d_INTER_%d_BUFF_%d_%df_%dx%d.txt",adaptLogic.metadata.video.name.c_str(), adaptLogic.metadata.trace.TRACE_ID, BW, adaptLogic.metadata.adapt.TILE_SELECT_METHOD, adaptLogic.metadata.adapt.VP_EST_METHOD,adaptLogic.metadata.video.INTERVAL, adaptLogic.metadata.video.BUFF, adaptLogic.metadata.vp.No_face, adaptLogic.metadata.vp.No_tile_h, adaptLogic.metadata.vp.No_tile_v);
 	printf("#%s\n", fname);
 	log_tile_ver = fopen(fname, "w");
-	sprintf(fname, "result/%s/log_tile_ver_linear_TRACE_%d_BW_%d_METHOD_%d_VP_EST_METHOD_%d_INTER_%d_BUFF_%d_%df_%dx%d.txt",adaptLogic.metadata.video.name.c_str(), 0, BW, adaptLogic.metadata.adapt.TILE_SELECT_METHOD, adaptLogic.metadata.adapt.VP_EST_METHOD,adaptLogic.metadata.video.INTERVAL, adaptLogic.metadata.video.BUFF, adaptLogic.metadata.vp.No_face, adaptLogic.metadata.vp.No_tile_h, adaptLogic.metadata.vp.No_tile_v);
+	sprintf(fname, "result/%s/log_tile_ver_linear_TRACE_%d_BW_%d_METHOD_%d_VP_EST_METHOD_%d_INTER_%d_BUFF_%d_%df_%dx%d.txt",adaptLogic.metadata.video.name.c_str(), adaptLogic.metadata.trace.TRACE_ID, BW, adaptLogic.metadata.adapt.TILE_SELECT_METHOD, adaptLogic.metadata.adapt.VP_EST_METHOD,adaptLogic.metadata.video.INTERVAL, adaptLogic.metadata.video.BUFF, adaptLogic.metadata.vp.No_face, adaptLogic.metadata.vp.No_tile_h, adaptLogic.metadata.vp.No_tile_v);
 	log_tile_ver_linear = fopen(fname, "w");
 	printf("#%s\n", fname);
-	sprintf(fname, "result/%s/log_dec_TRACE_%d_BW_%d_METHOD_%d_VP_EST_METHOD_%d_INTER_%d_BUFF_%d_%df_%dx%d.txt",adaptLogic.metadata.video.name.c_str(), 0, BW, adaptLogic.metadata.adapt.TILE_SELECT_METHOD, adaptLogic.metadata.adapt.VP_EST_METHOD,adaptLogic.metadata.video.INTERVAL, adaptLogic.metadata.video.BUFF, adaptLogic.metadata.vp.No_face, adaptLogic.metadata.vp.No_tile_h, adaptLogic.metadata.vp.No_tile_v);
+	sprintf(fname, "result/%s/log_dec_TRACE_%d_BW_%d_METHOD_%d_VP_EST_METHOD_%d_INTER_%d_BUFF_%d_%df_%dx%d.txt",adaptLogic.metadata.video.name.c_str(), adaptLogic.metadata.trace.TRACE_ID, BW, adaptLogic.metadata.adapt.TILE_SELECT_METHOD, adaptLogic.metadata.adapt.VP_EST_METHOD,adaptLogic.metadata.video.INTERVAL, adaptLogic.metadata.video.BUFF, adaptLogic.metadata.vp.No_face, adaptLogic.metadata.vp.No_tile_h, adaptLogic.metadata.vp.No_tile_v);
 	log_dec = fopen(fname, "w");
-	sprintf(fname, "result/%s/log_frame_TRACE_%d_BW_%d_METHOD_%d_VP_EST_METHOD_%d_INTER_%d_BUFF_%d_%df_%dx%d.txt",adaptLogic.metadata.video.name.c_str(), 0, BW, adaptLogic.metadata.adapt.TILE_SELECT_METHOD,adaptLogic.metadata.adapt.VP_EST_METHOD, adaptLogic.metadata.video.INTERVAL, adaptLogic.metadata.video.BUFF, adaptLogic.metadata.vp.No_face, adaptLogic.metadata.vp.No_tile_h, adaptLogic.metadata.vp.No_tile_v);
+	sprintf(fname, "result/%s/log_frame_TRACE_%d_BW_%d_METHOD_%d_VP_EST_METHOD_%d_INTER_%d_BUFF_%d_%df_%dx%d.txt",adaptLogic.metadata.video.name.c_str(), adaptLogic.metadata.trace.TRACE_ID, BW, adaptLogic.metadata.adapt.TILE_SELECT_METHOD,adaptLogic.metadata.adapt.VP_EST_METHOD, adaptLogic.metadata.video.INTERVAL, adaptLogic.metadata.video.BUFF, adaptLogic.metadata.vp.No_face, adaptLogic.metadata.vp.No_tile_h, adaptLogic.metadata.vp.No_tile_v);
 	printf("#%s\n", fname);
 	log_frame_psnr = fopen(fname, "w");
 	//

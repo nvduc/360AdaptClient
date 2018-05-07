@@ -65,7 +65,10 @@ int* AdaptLogic::get_next_segment(int index){
 		tile_ver[index] = Ireland(index);
 		break;
     case 6:
-   	tile_ver[index] = test(index); // ensure quality smoothnes
+   	tile_ver[index] = test(index); // ensure intra-interval quality smoothnes
+    break;
+    case 7:
+    tile_ver[index] = test2(index); // ensure both intra- and inter-interval quality smoothnes
     break;
 	}
 	/* calculate processing time */
@@ -100,7 +103,7 @@ void AdaptLogic::calc_result(){
 }
 char* AdaptLogic::get_method_name(int method_id){
   char* full_name = new char[1024];
-  char* name[100] = {"DASH-CMP","DASH-ERP","ROI", "ISM", "Ghent", "Ireland"};
+  char* name[100] = {"DASH-CMP","DASH-ERP","ROI", "ISM", "Ghent", "Ireland","test", "test2"};
   sprintf(full_name, "%df_%dx%d_%s", metadata.vp.No_face, metadata.vp.No_tile_h, metadata.vp.No_tile_v, name[method_id-1]);
   return full_name;
 }
@@ -194,6 +197,26 @@ int* AdaptLogic::test(int index){
     }
     // printf("#[EXT_ALL]: index=%d vmask:\n", index);
     // showVmask(vmask, metadata.vp.No_face, metadata.vp.No_tile_h, metadata.vp.No_tile_v);
+  }
+  /* Use ROI to find the version of each tile */
+  return ROI(metadata.video.TILE_BR[index], metadata.vp.No_tile, metadata.video.NO_VER, vmask, thrp.est_seg_thrp[index]);
+}
+int* AdaptLogic::test2(int index){
+  int* vmask = NULL;
+  int* vmask_tmp;
+  int frameID;
+  int tid;
+  if(index >=  metadata.video.BUFF / metadata.video.INTERVAL){
+    vmask = get_visible_tile(vp2.est_frame_vp[index * metadata.video.INTERVAL]);
+    for(frameID = 1; frameID < metadata.video.INTERVAL; frameID ++){
+      /* get the visible mask */
+      vmask_tmp = get_visible_tile(vp2.est_frame_vp[index * metadata.video.INTERVAL + frameID]);
+      /* update the aggr. visible mask */
+      for(tid=0; tid < metadata.vp.No_tile; tid ++){
+        if(vmask_tmp[tid] == 1)
+          vmask[tid] = 1;
+      }
+    }
   }
   /* Use ROI to find the version of each tile */
   return ROI(metadata.video.TILE_BR[index], metadata.vp.No_tile, metadata.video.NO_VER, vmask, thrp.est_seg_thrp[index]);

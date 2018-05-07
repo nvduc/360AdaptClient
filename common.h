@@ -13,6 +13,7 @@ double sum(double* , int);
 void get_face_tid(int No_face, int No_tile_h, int No_tile_v, int tid, int* face_id, int* tile_id);
 void showArrayInt(int *arr, int N);
 void showArrayDouble(double *arr, int N);
+FILE* open_file(char*);
 
 
 

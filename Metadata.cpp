@@ -19,7 +19,7 @@ Metadata::Metadata(const char* cfg){
 	// loadHeadTrace(filename);
 	/* load visible mask */
 	// sprintf(fname, "%svmask_%d_face_%dx%d_FoV_90.txt", vp.vmask_data_loc.c_str(), vp.No_face, vp.No_tile_h, vp.No_tile_v);
-	sprintf(fname, "%svisible_mask_%dx%d_FoV_90x90_%d_%dx%d.txt", vp.vmask_data_loc.c_str(), vp.erp_W, vp.erp_H, vp.No_face, vp.No_tile_h, vp.No_tile_v);
+	sprintf(fname, "%svmask_%d_face_%dx%d_FoV_90.txt", vp.vmask_data_loc.c_str(), vp.No_face, vp.No_tile_h, vp.No_tile_v);
 	load_visible_mask(fname);
 	load_head_trace(trace.trace_loc);
 	// exit(1);
@@ -54,8 +54,6 @@ void Metadata::import_matrix_from_txt_file(const char* filename_X, vector <doubl
     {
         int i=0;
         getline(file_X, line);
-        
-        
         cols = ReadNumbers( line, v );
         rows = 1;
         // cout << "cols:" << cols << endl;
@@ -272,8 +270,9 @@ void Metadata::load_head_trace(string trace_loc){
 	int cols;
 	trace.frame_vp = init3dArrayInt(trace.NO_TRACE, video.NO_FRAME, 2);
 	for(k=0; k < trace.NO_TRACE; k++){
-		sprintf(fname, "%sxyz_vid_5_uid_%d.txt", trace_loc.c_str(), k);
+		sprintf(fname, "%sxyz_vid_5_uid_%d.txt", trace_loc.c_str(), trace.TRACE_ID);
 		import_matrix_from_txt_file(fname, v, rows, cols);
+		printf("[load_head_trace]: finished reading file\n");
 		for(i=0; i < video.NO_FRAME; i++){
 			for(j=0; j < cols; j++){
 				trace.frame_vp[k][i][j] = v[(i+trace.OFFSET) * cols + j];
@@ -369,6 +368,7 @@ void Metadata::load_config_info(const char* filename){
 		// Head trace
 		if(key.compare("OFFSET") == 0) trace.OFFSET = (int) std::stod(val_str);
 		if(key.compare("NO_TRACE") == 0) trace.NO_TRACE = (int) std::stod(val_str);
+		if(key.compare("TRACE_ID") == 0) trace.TRACE_ID = (int) std::stod(val_str);
 		if(key.compare("trace_loc") == 0) trace.trace_loc = val_str;
 	}
 	// vp

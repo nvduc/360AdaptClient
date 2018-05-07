@@ -75,6 +75,7 @@ struct Headtrace
 {
 	int OFFSET; 				// Number of frames to skip at beginning
 	int NO_TRACE; 				// Number of traces
+	int TRACE_ID;
 	string trace_loc;			// Traces' location
 	int*** frame_vp;			// Frames' viewport location
 };

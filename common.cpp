@@ -163,3 +163,11 @@ void showArrayDouble(double *arr, int N){
 	}
 	printf("\n");
 }
+FILE* open_file(char* fileName){
+	FILE* f = NULL;
+	f = fopen(fileName, "w");
+	if(f == NULL){
+		printf("#[open_file] Cannot open file %s\n", fileName);
+		exit(-1);
+	}
+}

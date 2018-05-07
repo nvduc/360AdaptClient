@@ -40,6 +40,7 @@ public:
 	int* Ghent(int index);
 	int* Ireland(int index);
 	int* test(int index);
+	int* test2(int index);
 	// 
 	int* get_visible_tile(int* vp);
 	int* get_visible_pixel(int* vp);
